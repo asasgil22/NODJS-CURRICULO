@@ -7,7 +7,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     
     <style>
         :root { 
@@ -44,20 +49,28 @@
         .content-card, .header-card, body { transition: border-color 0.4s ease, color 0.3s ease, background-color 0.4s ease; }
         .main-container { max-width: 1140px; margin: 50px auto; padding: 0 24px; }
         
+        /* Estilos do Tela de Preload */
+        #preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: var(--bg-body-gradient); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease, visibility 0.5s ease; }
+        #preloader.fade-out { opacity: 0; visibility: hidden; }
+        
         .theme-toggle-btn { position: fixed; top: 15px; right: 25px; z-index: 1050; background-color: var(--text-main); color: var(--bg-card); border: none; padding: 4px 10px; font-weight: 500; font-size: 0.75rem; text-transform: uppercase; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.3s ease;}
         .theme-toggle-btn:hover { transform: scale(1.05); }
         .floating-action-whatsapp { position: fixed; bottom: 25px; right: 25px; z-index: 1040; background-color: #25D366; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; animation: pulseBtn 2s infinite; }
         
         .content-card, .header-card { backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 24px; box-shadow: var(--card-shadow); }
         .header-card { background-color: var(--bg-header); padding: 45px; margin-bottom: 35px; }
-        .profile-img { width: 120px; height: 120px; object-fit: cover; border: 4px solid rgba(255,255,255,0.1); border-radius: 50%; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .profile-img { width: 120px; height: 120px; object-fit: cover; border: 4px solid rgba(255,255,255,0.1); border-radius: 50%; box-shadow: 0 10px 20px rgba(0,0,0,0.3); transform-style: preserve-3d; }
         
         .header-title { font-size: 3rem; font-weight: 700; letter-spacing: -0.03em; color: var(--text-header) !important; }
-        .header-subtitle { color: var(--text-subtitle); font-size: 1.2rem; }
         
-        .contact-pill { background-color: rgba(255,255,255,0.08); color: #f8fafc; padding: 8px 18px; border-radius: 30px; font-size: 0.85rem; display: inline-block; margin-right: 10px; margin-top: 12px; text-decoration: none; border: 1px solid rgba(255,255,255,0.05); }
+        /* Título estático corrigido para cor cinza suave (muted) igual ao anexo */
+        .header-subtitle { color: var(--text-muted); font-size: 1.3rem; font-weight: 500; margin-bottom: 12px; }
+        
+        .contact-pill { background-color: rgba(255,255,255,0.08); color: #f8fafc; padding: 8px 18px; border-radius: 30px; font-size: 0.85rem; display: inline-block; margin-right: 10px; margin-top: 12px; text-decoration: none; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; }
+        .contact-pill:hover { background-color: var(--timeline-dot); color: #fff; border-color: var(--timeline-dot); }
         
         body.light-mode .contact-pill { background-color: rgba(15, 23, 42, 0.05); color: #0f172a; border-color: rgba(15, 23, 42, 0.1); }
+        body.light-mode .contact-pill:hover { background-color: var(--timeline-dot); color: #fff; border-color: var(--timeline-dot); }
         body.light-mode .btn-outline-light { color: #0f172a; border-color: #cbd5e1; }
         body.light-mode .btn-outline-light:hover { background-color: #0f172a; color: #ffffff; border-color: #0f172a; }
 
@@ -74,40 +87,62 @@
         .content-card { background-color: var(--bg-card); padding: 40px; margin-bottom: 35px; }
         .section-title { font-size: 1.15rem; text-transform: uppercase; font-weight: 700; color: var(--text-main); margin-bottom: 30px; display: flex; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
         .section-title i { color: var(--timeline-dot); }
-        .stat-card { text-align: center; padding: 15px; background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); }
-        .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--timeline-dot); }
-        .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        
+        .stat-card { text-align: center; padding: 15px; background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); cursor: pointer; transform-style: preserve-3d; }
+        .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--timeline-dot); transform: translateZ(20px); }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; transform: translateZ(10px); }
+        
         .timeline { position: relative; padding-left: 30px; border-left: 2px solid var(--border-color); }
         .timeline-item { position: relative; margin-bottom: 40px; }
-        .timeline-item::before { content: ''; position: absolute; left: -37px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background-color: var(--timeline-dot); border: 2px solid var(--bg-card); box-shadow: 0 0 0 4px var(--border-color); }
+        .timeline-item::before { content: ''; position: absolute; left: -37px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background-color: var(--timeline-dot); border: 2px solid var(--bg-card); box-shadow: 0 0 0 4px var(--border-color); transition: all 0.3s ease; }
+        .timeline-item:hover::before { background-color: var(--bg-card); border-color: var(--timeline-dot); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
+        
         .time-date { font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: var(--timeline-dot); margin-bottom: 6px; }
         .time-title { font-size: 1.2rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
         .time-institution { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 12px; }
         .time-desc { font-size: 0.925rem; color: var(--text-muted); }
+        
         .progress-custom { background-color: var(--border-color); border-radius: 10px; height: 8px; overflow: hidden; }
         .progress-bar-custom { background: linear-gradient(90deg, #38bdf8, var(--timeline-dot)); border-radius: 10px; }
         .form-label { font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
         .form-control { background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 14px; padding: 14px 18px; color: var(--text-main); }
         .whatsapp-card { background-color: var(--bg-card) !important; border: 1px solid var(--border-color) !important; }
-        .whatsapp-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background-color: #25D366; }
+        .whatsapp-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background-color: #25D366; border-radius: 24px 0 0 24px; }
         .btn-whatsapp-block { background: linear-gradient(135deg, #25D366 0%, #128C7E 100%) !important; color: #ffffff !important; border: none; border-radius: 14px; padding: 16px; font-weight: 600; }
-        .text-pdf-link { color: var(--timeline-dot) !important; cursor: pointer; }
+        
+        .footer-custom { text-align: center; padding: 30px 15px; margin-top: 20px; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.85rem; font-weight: 500; }
+        .footer-custom span { color: var(--timeline-dot); font-weight: 700; }
+
         @keyframes pulseBtn { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5); } 70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
     </style>
 </head>
 <body>
 
+<div id="preloader">
+    <div class="d-flex flex-column align-items-center w-100 px-5">
+        <span class="mb-3 fw-bold text-center" style="color: var(--timeline-dot); letter-spacing: 2px; font-size: 0.85rem; text-transform: uppercase;">Já já vai abrir o currículo do <%= nome %> ...</span>
+        <div class="progress w-100" style="max-width: 300px; height: 4px; background-color: var(--input-bg);">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%; background-color: var(--timeline-dot);"></div>
+        </div>
+    </div>
+</div>
+
 <button class="btn theme-toggle-btn secao-botoes-ignorar" onclick="alternarTema()"><i id="theme-icon" class="bi bi-sun-fill"></i> <span id="theme-text">Claro</span></button>
 <a href="#contato" class="floating-action-whatsapp secao-botoes-ignorar"><i class="bi bi-whatsapp"></i></a>
 
 <div class="main-container" id="area-curriculo">
-    <div class="card header-card">
+    
+    <div class="card header-card" data-aos="fade-down">
         <div class="row align-items-center text-center text-md-start">
-            <div class="col-md-auto mb-4 mb-md-0 pe-md-4"><img src="https://media.licdn.com/dms/image/v2/D4D03AQFFUGOWZq99eA/profile-displayphoto-crop_800_800/B4DZ49IDv2KAAI-/0/1779141985785?e=1780531200&v=beta&t=nhqjBOUx95K8WwqDIHwiz4trrtl13I2bSt59WeseVvE" alt="<%= nome %>" class="profile-img"></div>
+            <div class="col-md-auto mb-4 mb-md-0 pe-md-4">
+                <img src="<%= typeof fotoUrl !== 'undefined' && fotoUrl ? fotoUrl : 'https://media.licdn.com/dms/image/v2/D4D03AQFFUGOWZq99eA/profile-displayphoto-crop_800_800/B4DZ49IDv2KAAI-/0/1779141985785?e=1780531200&v=beta&t=nhqjBOUx95K8WwqDIHwiz4trrtl13I2bSt59WeseVvE' %>" alt="<%= nome %>" class="profile-img" data-tilt data-tilt-scale="1.05" data-tilt-max="15">
+            </div>
             <div class="col-md">
                 <h1 class="header-title"><%= nome %></h1>
-                <p class="header-subtitle mb-2"><%= cargo %></p>
-                <div>
+                
+                <p class="header-subtitle">Gestor de TI | Analista de Marketing Digital | Desenvolvedor Web</p>
+                
+                <div class="mt-3">
                     <a href="mailto:<%= email %>" class="contact-pill"><i class="bi bi-envelope-fill me-2"></i><%= email %></a>
                     <a href="tel:<%= telefoneLink %>" class="contact-pill"><i class="bi bi-telephone-fill me-2"></i><%= telefoneExibicao %></a>
                     <span class="contact-pill"><i class="bi bi-geo-alt-fill me-2"></i><%= localizacao %></span>
@@ -120,29 +155,36 @@
         </div>
     </div>
 
-    <div class="marquee-wrapper secao-botoes-ignorar">
+    <div class="marquee-wrapper secao-botoes-ignorar" data-aos="fade-in" data-aos-delay="200">
         <div class="marquee-content">
             <div class="marquee-group">
-                <% tecnologias.forEach(tech => { %>
-                    <span class="marquee-tag"><i class="bi <%= tech.icone %>"></i> <%= tech.nome %></span>
-                <% }) %>
+                <% tecnologias.forEach(tech => { %> <span class="marquee-tag"><i class="bi <%= tech.icone %>"></i> <%= tech.nome %></span> <% }) %>
             </div>
             <div class="marquee-group">
-                <% tecnologias.forEach(tech => { %>
-                    <span class="marquee-tag"><i class="bi <%= tech.icone %>"></i> <%= tech.nome %></span>
-                <% }) %>
+                <% tecnologias.forEach(tech => { %> <span class="marquee-tag"><i class="bi <%= tech.icone %>"></i> <%= tech.nome %></span> <% }) %>
             </div>
         </div>
     </div>
 
     <div class="row mb-4 g-3">
-        <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-number">+14</div><div class="stat-label">Anos de Bagagem</div></div></div>
-        <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-number">2</div><div class="stat-label">Hospitais Liderados</div></div></div>
-        <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-number">3</div><div class="stat-label">Países Atendidos</div></div></div>
-        <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-number">100%</div><div class="stat-label">Multidisciplinar</div></div></div>
+        <% if (typeof estatisticas !== 'undefined' && estatisticas && estatisticas.length > 0) { %>
+            <% estatisticas.forEach((stat, index) => { %>
+                <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="<%= index * 100 %>">
+                    <div class="stat-card" data-tilt data-tilt-max="15" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2">
+                        <div class="stat-number"><%= stat.numero %></div>
+                        <div class="stat-label"><%= stat.label %></div>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="0"><div class="stat-card" data-tilt data-tilt-glare="true" data-tilt-max-glare="0.2"><div class="stat-number">+14</div><div class="stat-label">Anos de Bagagem</div></div></div>
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="100"><div class="stat-card" data-tilt data-tilt-glare="true" data-tilt-max-glare="0.2"><div class="stat-number">2</div><div class="stat-label">Hospitais Liderados</div></div></div>
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="200"><div class="stat-card" data-tilt data-tilt-glare="true" data-tilt-max-glare="0.2"><div class="stat-number">3</div><div class="stat-label">Países Atendidos</div></div></div>
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="300"><div class="stat-card" data-tilt data-tilt-glare="true" data-tilt-max-glare="0.2"><div class="stat-number">100%</div><div class="stat-label">Multidisciplinar</div></div></div>
+        <% } %>
     </div>
 
-    <div class="card content-card">
+    <div class="card content-card" data-aos="fade-up">
         <div class="section-title"><i class="bi bi-calendar3 me-2"></i> Infográfico de Carreira Profissional</div>
         <div class="w-100" id="container-timeline" style="position: relative;">
             <canvas id="chartTimeline"></canvas>
@@ -151,17 +193,17 @@
 
     <div class="row">
         <div class="col-lg-4">
-            <div class="card content-card">
+            <div class="card content-card" data-aos="fade-right">
                 <div class="section-title"><i class="bi bi-person-badge-fill me-2"></i> Foco de Atuação</div>
                 <div style="max-width: 220px; margin: 0 auto;"><canvas id="chartAtuacao"></canvas></div>
             </div>
 
-            <div class="card content-card">
+            <div class="card content-card" data-aos="fade-right" data-aos-delay="100">
                 <div class="section-title"><i class="bi bi-shield-check me-2"></i> Perfil Comportamental</div>
                 <div style="max-width: 250px; margin: 0 auto;"><canvas id="chartRadar"></canvas></div>
             </div>
 
-            <div class="card content-card">
+            <div class="card content-card" data-aos="fade-right" data-aos-delay="200">
                 <div class="section-title"><i class="bi bi-cpu-fill me-2"></i> Proficiência Técnica</div>
                 <% proficiencia.forEach(item => { %>
                     <div class="mb-3">
@@ -171,11 +213,11 @@
                 <% }) %>
             </div>
 
-            <div class="card content-card">
+            <div class="card content-card" data-aos="fade-up">
                 <div class="section-title"><i class="bi bi-mortarboard-fill me-2"></i> Formação</div>
                 <div class="timeline">
-                    <% formacao.forEach(item => { %>
-                        <div class="timeline-item">
+                    <% formacao.forEach((item, index) => { %>
+                        <div class="timeline-item" data-aos="fade-left" data-aos-delay="<%= index * 100 %>">
                             <div class="time-date"><%= item.periodo %></div>
                             <div class="time-title"><%= item.curso %></div>
                             <div class="time-institution"><%= item.instituicao %></div>
@@ -184,11 +226,11 @@
                 </div>
             </div>
 
-            <div class="card content-card">
+            <div class="card content-card" data-aos="fade-up">
                 <div class="section-title"><i class="bi bi-globe2 me-2"></i> Extra Curricular</div>
                 <div class="timeline">
-                    <% extracurricular.forEach(item => { %>
-                        <div class="timeline-item">
+                    <% extracurricular.forEach((item, index) => { %>
+                        <div class="timeline-item" data-aos="fade-left" data-aos-delay="<%= index * 100 %>">
                             <div class="time-date"><%= item.periodo %></div>
                             <div class="time-title"><%= item.curso %></div>
                             <div class="time-institution"><%= item.instituicao %></div>
@@ -199,11 +241,11 @@
         </div>
 
         <div class="col-lg-8">
-            <div class="card content-card">
+            <div class="card content-card" data-aos="fade-left">
                 <div class="section-title"><i class="bi bi-briefcase-fill me-2"></i> Experiência Profissional</div>
                 <div class="timeline">
-                    <% experiencias.forEach(exp => { %>
-                        <div class="timeline-item">
+                    <% experiencias.forEach((exp, index) => { %>
+                        <div class="timeline-item" data-aos="fade-up" data-aos-delay="<%= index * 100 %>">
                             <div class="time-date"><%= exp.periodo %></div>
                             <div class="time-title"><%= exp.cargo %></div>
                             <div class="time-institution"><%= exp.empresa %></div>
@@ -215,7 +257,7 @@
                 </div>
             </div>
 
-            <div class="card content-card whatsapp-card" id="contato">
+            <div class="card content-card whatsapp-card" id="contato" data-aos="zoom-in-up">
                 <div class="section-title"><i class="bi bi-whatsapp me-2"></i> Entre em Contato</div>
                 <p class="time-desc mb-4">Envie uma proposta para meu WhatsApp preenchendo os dados abaixo:</p>
                 <form id="formContato" onsubmit="enviarParaWhatsApp(event)">
@@ -229,6 +271,11 @@
             </div>
         </div> 
     </div>
+
+    <footer class="footer-custom secao-botoes-ignorar">
+        Esse projeto foi criado e desenvolvido por <span>Sergio Gil</span> utilizando a tecnologia <span>Node.js</span> | 2026
+    </footer>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -267,9 +314,7 @@
         return [inicioDecimal, fimDecimal];
     }
 
-    let graficoAtuacao;
-    let graficoRadar;
-    let graficoTimeline;
+    let graficoAtuacao, graficoRadar, graficoTimeline;
 
     function renderizarGraficos(isLightMode) {
         const colTexto = isLightMode ? '#475569' : '#9ca3af';
@@ -278,19 +323,11 @@
 
         const ctxDoughnut = document.getElementById('chartAtuacao').getContext('2d');
         if (graficoAtuacao) graficoAtuacao.destroy();
-        graficoAtuacao = new Chart(ctxDoughnut, {
-            type: 'doughnut',
-            data: { labels: jsAtuacao.map(item => item.nome), datasets: [{ data: jsAtuacao.map(item => item.valor), backgroundColor: palette.slice(0, jsAtuacao.length), borderWidth: isLightMode ? 0 : 2, borderColor: '#111827' }] },
-            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: colTexto, font: { family: 'Inter', size: 11 } } } }, cutout: '75%' }
-        });
+        graficoAtuacao = new Chart(ctxDoughnut, { type: 'doughnut', data: { labels: jsAtuacao.map(item => item.nome), datasets: [{ data: jsAtuacao.map(item => item.valor), backgroundColor: palette.slice(0, jsAtuacao.length), borderWidth: isLightMode ? 0 : 2, borderColor: '#111827' }] }, options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: colTexto, font: { family: 'Inter', size: 11 } } } }, cutout: '75%' } });
 
         const ctxRadar = document.getElementById('chartRadar').getContext('2d');
         if (graficoRadar) graficoRadar.destroy();
-        graficoRadar = new Chart(ctxRadar, {
-            type: 'radar',
-            data: { labels: jsComportamental.map(item => item.nome), datasets: [{ label: 'Perfil Sênior', data: jsComportamental.map(item => item.valor), backgroundColor: 'rgba(16, 185, 129, 0.2)', borderColor: '#10b981', pointBackgroundColor: '#10b981' }] },
-            options: { responsive: true, scales: { r: { grid: { color: colGradeRadar }, angleLines: { color: colGradeRadar }, pointLabels: { color: colTexto, font: { family: 'Inter', size: 10, weight: '600' } }, ticks: { display: false } } }, plugins: { legend: { display: false } } }
-        });
+        graficoRadar = new Chart(ctxRadar, { type: 'radar', data: { labels: jsComportamental.map(item => item.nome), datasets: [{ label: 'Perfil Sênior', data: jsComportamental.map(item => item.valor), backgroundColor: 'rgba(16, 185, 129, 0.2)', borderColor: '#10b981', pointBackgroundColor: '#10b981' }] }, options: { responsive: true, scales: { r: { grid: { color: colGradeRadar }, angleLines: { color: colGradeRadar }, pointLabels: { color: colTexto, font: { family: 'Inter', size: 10, weight: '600' } }, ticks: { display: false } } }, plugins: { legend: { display: false } } } });
 
         const boxTimeline = document.getElementById('container-timeline');
         const alturaCalculada = Math.max(300, jsExperiencias.length * 45 + 50); 
@@ -305,25 +342,7 @@
 
         const ctxTimeline = document.getElementById('chartTimeline').getContext('2d');
         if (graficoTimeline) graficoTimeline.destroy();
-        graficoTimeline = new Chart(ctxTimeline, {
-            type: 'bar',
-            data: { labels: labelsTimeline, datasets: [{ data: dadosTimeline, backgroundColor: coresTimeline, borderRadius: 6, borderSkipped: false }] },
-            options: { 
-                indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
-                scales: { 
-                    x: { min: minAno, max: maxAno, grid: { color: colGradeRadar }, ticks: { color: colTexto, stepSize: 2, callback: v => Math.floor(v) } }, 
-                    y: { grid: { display: false }, ticks: { color: colTexto, font: { family: 'Inter', size: 11, weight: '500' } } } 
-                }, 
-                plugins: { 
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) { return jsExperiencias[context.dataIndex].periodo; }
-                        }
-                    }
-                } 
-            }
-        });
+        graficoTimeline = new Chart(ctxTimeline, { type: 'bar', data: { labels: labelsTimeline, datasets: [{ data: dadosTimeline, backgroundColor: coresTimeline, borderRadius: 6, borderSkipped: false }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { min: minAno, max: maxAno, grid: { color: colGradeRadar }, ticks: { color: colTexto, stepSize: 2, callback: v => Math.floor(v) } }, y: { grid: { display: false }, ticks: { color: colTexto, font: { family: 'Inter', size: 11, weight: '500' } } } }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return jsExperiencias[context.dataIndex].periodo; } } } } } });
     }
 
     function alternarTema() {
@@ -343,13 +362,31 @@
     function baixarCurriculoPDF() {
         const btsIgnorar = document.querySelectorAll('.secao-botoes-ignorar');
         btsIgnorar.forEach(el => el.style.setProperty('display', 'none', 'important'));
-        
-        html2pdf().set({ margin: 0.2, filename: 'curriculo.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(document.getElementById('area-curriculo')).save().then(() => {
-            btsIgnorar.forEach(el => el.style.display = '');
-        });
+        html2pdf().set({ margin: 0.2, filename: 'curriculo.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(document.getElementById('area-curriculo')).save().then(() => { btsIgnorar.forEach(el => el.style.display = ''); });
     }
 
     window.onload = () => renderizarGraficos(false);
+
+    // SISTEMA UNIFICADO (PRELOADER + AOS)
+    window.addEventListener('load', function() {
+        const preloader = document.getElementById('preloader');
+        
+        setTimeout(() => {
+            preloader.classList.add('fade-out');
+            
+            setTimeout(() => {
+                preloader.style.display = 'none';
+                
+                // Inicia o AOS (Animações de Rolagem)
+                AOS.init({
+                    duration: 800,
+                    once: true,
+                    offset: 50
+                });
+
+            }, 500);
+        }, 500); 
+    });
 </script>
 </body>
 </html>

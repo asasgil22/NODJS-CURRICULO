@@ -38,7 +38,7 @@
         </div>
     </div>
 
-    <form action="/admin" method="POST" id="adminForm">
+    <form action="/admin" method="POST" id="adminForm" enctype="multipart/form-data">
         <div class="row g-4">
             <div class="col-lg-3">
                 <div class="glass-card p-3 sticky-top" style="top: 20px;">
@@ -47,6 +47,7 @@
                         <button class="nav-link" data-bs-toggle="pill" data-bs-target="#v-pills-exp" type="button"><i class="bi bi-briefcase me-2"></i> Experiências</button>
                         <button class="nav-link" data-bs-toggle="pill" data-bs-target="#v-pills-edu" type="button"><i class="bi bi-mortarboard me-2"></i> Educação</button>
                         <button class="nav-link" data-bs-toggle="pill" data-bs-target="#v-pills-graficos" type="button"><i class="bi bi-bar-chart-fill me-2"></i> Gráficos & Skills</button>
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#v-pills-seguranca" type="button"><i class="bi bi-shield-lock-fill me-2"></i> Segurança</button>
                     </div>
                     <hr class="my-4" style="border-color: var(--border-color);">
                     <div class="d-grid"><button type="submit" class="btn btn-custom">Publicar Alterações</button></div>
@@ -55,12 +56,25 @@
 
             <div class="col-lg-9">
                 <div class="glass-card tab-content">
+                    
                     <div class="tab-pane fade show active" id="v-pills-perfil">
                         <div class="section-title">Informações Pessoais</div>
                         <div class="field-group">
                             <div class="row">
                                 <div class="col-md-6 mb-3"><label class="form-label">Nome Completo</label><input type="text" class="form-control" name="nome" value="<%= nome %>" required></div>
                                 <div class="col-md-6 mb-3"><label class="form-label">Cargo / Título</label><input type="text" class="form-control" name="cargo" value="<%= cargo %>" required></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-2">
+                                    <label class="form-label">Alterar Imagem de Perfil</label>
+                                    <% if (typeof fotoUrl !== 'undefined' && fotoUrl) { %>
+                                        <div class="mb-2 d-flex align-items-center gap-2">
+                                            <img src="<%= fotoUrl %>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%; border: 2px solid var(--timeline-dot);">
+                                            <span class="text-muted small">Imagem ativa no site</span>
+                                        </div>
+                                    <% } %>
+                                    <input type="file" class="form-control" name="foto" accept="image/*">
+                                </div>
                             </div>
                         </div>
                         <div class="section-title mt-4">Dados de Contato</div>
@@ -118,25 +132,90 @@
                     </div>
 
                     <div class="tab-pane fade" id="v-pills-graficos">
-                        <div class="d-flex justify-content-between mb-4 border-bottom pb-3"><div class="section-title mb-0">Carrossel de Tecnologias</div><button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="adicionarGrafico('container-tech', 'tech')">Adicionar</button></div>
+                        <div class="d-flex justify-content-between mb-4 border-bottom pb-3"><div class="section-title mb-0">Carrossel de Tecnologias</div><button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="adicionarGrafico('container-tech', 'tech')">Adicionar Tech</button></div>
                         <div id="container-tech" class="row mb-5">
                             <% tecnologias.forEach(tech => { %>
-                                <div class="col-md-4 mb-3 exp-block py-3">
-                                    <input type="text" class="form-control mb-2" name="tech_nome" value="<%= tech.nome %>" required>
-                                    <input type="text" class="form-control" name="tech_icone" value="<%= tech.icone %>" required>
+                                <div class="col-md-4 mb-3 exp-block py-3 position-relative">
+                                    <input type="text" class="form-control mb-2" name="tech_nome" value="<%= tech.nome %>" placeholder="Nome" required>
+                                    <input type="text" class="form-control mb-2" name="tech_icone" value="<%= tech.icone %>" placeholder="Ícone (Bootstrap Icon)" required>
+                                    <button type="button" class="btn btn-sm btn-danger w-100 mt-1" onclick="this.parentElement.remove()">Remover</button>
                                 </div>
                             <% }) %>
                         </div>
-                        <div class="d-flex justify-content-between mb-4 border-bottom pb-3"><div class="section-title mb-0">Foco de Atuação</div><button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="adicionarGrafico('container-atuacao', 'atuacao')">Adicionar</button></div>
+
+                        <div class="d-flex justify-content-between mb-4 border-bottom pb-3"><div class="section-title mb-0">Destaques Numéricos (Cards)</div><button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="adicionarEstatistica()">Adicionar Card</button></div>
+                        <div id="container-estatisticas" class="row mb-5">
+                            <% if (typeof estatisticas !== 'undefined' && estatisticas && estatisticas.length > 0) { %>
+                                <% estatisticas.forEach(stat => { %>
+                                    <div class="col-md-6 mb-3 exp-block py-3">
+                                        <label class="form-label">Número / Destaque</label>
+                                        <input type="text" class="form-control mb-2" name="stat_numero" value="<%= stat.numero %>" required>
+                                        <label class="form-label">Texto / Descrição</label>
+                                        <input type="text" class="form-control mb-2" name="stat_label" value="<%= stat.label %>" required>
+                                        <button type="button" class="btn btn-sm btn-danger w-100 mt-2" onclick="this.parentElement.remove()">Remover Card</button>
+                                    </div>
+                                <% }) %>
+                            <% } else { %>
+                                <div class="col-md-6 mb-3 exp-block py-3">
+                                    <label class="form-label">Número / Destaque</label>
+                                    <input type="text" class="form-control mb-2" name="stat_numero" value="+14" required>
+                                    <label class="form-label">Texto / Descrição</label>
+                                    <input type="text" class="form-control mb-2" name="stat_label" value="Anos de Bagagem" required>
+                                    <button type="button" class="btn btn-sm btn-danger w-100 mt-2" onclick="this.parentElement.remove()">Remover Card</button>
+                                </div>
+                                <div class="col-md-6 mb-3 exp-block py-3">
+                                    <label class="form-label">Número / Destaque</label>
+                                    <input type="text" class="form-control mb-2" name="stat_numero" value="2" required>
+                                    <label class="form-label">Texto / Descrição</label>
+                                    <input type="text" class="form-control mb-2" name="stat_label" value="Hospitais Liderados" required>
+                                    <button type="button" class="btn btn-sm btn-danger w-100 mt-2" onclick="this.parentElement.remove()">Remover Card</button>
+                                </div>
+                                <div class="col-md-6 mb-3 exp-block py-3">
+                                    <label class="form-label">Número / Destaque</label>
+                                    <input type="text" class="form-control mb-2" name="stat_numero" value="3" required>
+                                    <label class="form-label">Texto / Descrição</label>
+                                    <input type="text" class="form-control mb-2" name="stat_label" value="Países Atendidos" required>
+                                    <button type="button" class="btn btn-sm btn-danger w-100 mt-2" onclick="this.parentElement.remove()">Remover Card</button>
+                                </div>
+                                <div class="col-md-6 mb-3 exp-block py-3">
+                                    <label class="form-label">Número / Destaque</label>
+                                    <input type="text" class="form-control mb-2" name="stat_numero" value="100%" required>
+                                    <label class="form-label">Texto / Descrição</label>
+                                    <input type="text" class="form-control mb-2" name="stat_label" value="Multidisciplinar" required>
+                                    <button type="button" class="btn btn-sm btn-danger w-100 mt-2" onclick="this.parentElement.remove()">Remover Card</button>
+                                </div>
+                            <% } %>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-4 border-bottom pb-3"><div class="section-title mb-0">Foco de Atuação</div><button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="adicionarGrafico('container-atuacao', 'atuacao')">Adicionar Foco</button></div>
                         <div id="container-atuacao" class="row mb-5">
                             <% atuacao.forEach(item => { %>
                                 <div class="col-md-6 mb-3 exp-block py-3">
                                     <input type="text" class="form-control mb-2" name="atuacao_nome" value="<%= item.nome %>" required>
                                     <input type="number" class="form-control" name="atuacao_valor" value="<%= item.valor %>" min="0" max="100" required>
+                                    <button type="button" class="btn btn-sm btn-danger w-100 mt-2" onclick="this.parentElement.remove()">Remover</button>
                                 </div>
                             <% }) %>
                         </div>
                     </div>
+
+                    <div class="tab-pane fade" id="v-pills-seguranca">
+                        <div class="section-title"><i class="bi bi-shield-check me-2"></i> Credenciais de Acesso</div>
+                        <div class="field-group">
+                            <p class="text-muted small mb-4">Atualize o usuário e a senha que você usa para acessar este painel administrativo.</p>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Usuário de Acesso</label>
+                                    <input type="text" class="form-control" name="novo_usuario" value="<%= (typeof credenciais !== 'undefined' && credenciais.usuario) ? credenciais.usuario : 'admin' %>" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Senha de Acesso</label>
+                                    <input type="text" class="form-control" name="nova_senha" value="<%= (typeof credenciais !== 'undefined' && credenciais.senha) ? credenciais.senha : 'Sog+123+#' %>" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -152,11 +231,26 @@
         div.innerHTML = tipo === 'exp' ? `<div class="row"><div class="col-md-4 mb-3"><input type="text" class="form-control" name="exp_periodo"></div><div class="col-md-4 mb-3"><input type="text" class="form-control" name="exp_cargo"></div><div class="col-md-4 mb-3"><input type="text" class="form-control" name="exp_empresa"></div></div><textarea class="form-control" name="exp_atividades"></textarea>` : `<div class="row"><div class="col-md-3 mb-2"><input type="text" class="form-control" name="${tipo === 'form' ? 'form_periodo' : 'extra_periodo'}"></div><div class="col-md-5 mb-2"><input type="text" class="form-control" name="${tipo === 'form' ? 'form_curso' : 'extra_curso'}"></div><div class="col-md-4 mb-2"><input type="text" class="form-control" name="${tipo === 'form' ? 'form_inst' : 'extra_inst'}"></div></div>`;
         container.appendChild(div);
     }
+    
     function adicionarGrafico(containerId, tipo) {
         const container = document.getElementById(containerId);
         const div = document.createElement('div');
-        div.className = 'col-md-4 mb-3 exp-block py-3';
-        div.innerHTML = `<input type="text" class="form-control mb-2" name="${tipo}_nome"><input type="text" class="form-control" name="${tipo}_icone">`;
+        div.className = tipo === 'tech' ? 'col-md-4 mb-3 exp-block py-3' : 'col-md-6 mb-3 exp-block py-3';
+        div.innerHTML = `<input type="text" class="form-control mb-2" name="${tipo}_nome" placeholder="Nome"><input type="text" class="form-control mb-2" name="${tipo === 'tech' ? 'tech_icone' : 'atuacao_valor'}" placeholder="${tipo === 'tech' ? 'Ícone' : 'Valor'}"><button type="button" class="btn btn-sm btn-danger w-100 mt-1" onclick="this.parentElement.remove()">Remover</button>`;
+        container.appendChild(div);
+    }
+
+    function adicionarEstatistica() {
+        const container = document.getElementById('container-estatisticas');
+        const div = document.createElement('div');
+        div.className = 'col-md-6 mb-3 exp-block py-3';
+        div.innerHTML = `
+            <label class="form-label">Número / Destaque</label>
+            <input type="text" class="form-control mb-2" name="stat_numero" placeholder="Ex: +15" required>
+            <label class="form-label">Texto / Descrição</label>
+            <input type="text" class="form-control mb-2" name="stat_label" placeholder="Ex: Projetos Criados" required>
+            <button type="button" class="btn btn-sm btn-danger w-100 mt-2" onclick="this.parentElement.remove()">Remover Card</button>
+        `;
         container.appendChild(div);
     }
 </script>
